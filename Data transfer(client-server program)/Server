@@ -1,0 +1,155 @@
+import java.net.*;
+import java.io.*;
+
+class Server implements Runnable
+{
+ ServerSocket port; 
+ boolean flag;
+ Thread t;
+
+ Server(int portNo) throws Exception 
+ {
+ 
+  port = new ServerSocket(portNo);
+  flag = true;
+  t = new Thread(this); 
+  t.start(); 
+ }
+
+ public void run()
+ {
+   while(flag)
+   {
+    acceptConnection(); 
+   }
+
+ 
+   try
+   {
+    port.close();
+   }
+   catch(Exception ex)
+   {
+    System.out.println(ex);
+   }
+ }
+
+ void acceptConnection()
+ {
+  try
+  {
+   System.out.println("Waiting for client connection ...");
+   Socket s = port.accept();     
+   System.out.println("... got a client connection, processing it now!!!");
+   new ClientProcessor(s); 
+  }
+  catch(Exception ex)
+  {
+   System.out.println(ex);
+  }
+
+ }
+
+
+ public static void main(String args[])
+ {
+  try
+  {
+   Server svr = new Server(9090);
+  }
+  catch(Exception ex)
+  {
+   System.out.println(ex);
+  }
+ }
+}
+
+
+class ClientProcessor extends Thread
+{
+  Socket skt;
+
+  ClientProcessor(Socket s) 
+  {
+   skt = s;
+   start(); 
+  }
+
+  public void run()
+  {
+   try
+   {
+    InputStream in = skt.getInputStream(); 
+    OutputStream out = skt.getOutputStream();
+    DataInputStream din = new DataInputStream(in);
+    DataOutputStream dout = new DataOutputStream(out);
+
+    double a, b, c;
+    int ch;
+   
+    a = din.readDouble(); 
+    b = din.readDouble();
+    ch = din.readInt();
+    switch(ch)
+    {
+      case 1: 
+       c = ArithmeticService.add(a,b);
+       break;
+      case 2: 
+       c = ArithmeticService.subtract(a,b);
+       break;
+      case 3: 
+       c = ArithmeticService.multiply(a,b);
+       break;
+      case 4: 
+       c = ArithmeticService.divide(a,b);
+       break; 
+      default:
+       c = 0;
+    }
+
+    dout.writeDouble(c);
+ 
+    dout.close();
+    din.close();     
+    skt.close(); 
+   }
+   catch(Exception ex)
+   {
+    System.out.println(ex );
+   }
+  }
+}
+
+
+class ArithmeticService
+{
+ static double add(double n1, double n2)
+ {
+  double ans;
+  ans = n1 + n2;
+  return ans;
+ }
+
+ static double subtract(double n1, double n2)
+ {
+  double ans;
+  ans = n1 - n2;
+  return ans;
+ }
+
+ static double multiply(double n1, double n2)
+ {
+  double ans;
+  ans = n1 * n2;
+  return ans;
+ }
+
+ static double divide(double n1, double n2)
+ {
+  double ans;
+  ans = n1 / n2;
+  return ans;
+ }
+  
+}
